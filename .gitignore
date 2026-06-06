@@ -1,0 +1,44 @@
+@"
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Audio / models
+data/models/
+data/audio/temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/settings.json
+
+# Secrets
+*.key
+*.pem
+secrets.json
+
+# Build
+dist/
+build/
+*.egg-info/
+"@ | Set-Content .gitignore
