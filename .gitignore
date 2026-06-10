@@ -42,3 +42,7 @@ dist/
 build/
 *.egg-info/
 "@ | Set-Content .gitignore
+
+.coverage
+htmlcov/
+.pytest_cache/
