@@ -33,7 +33,10 @@ class Orchestrator:
         for agent_name in ["dev", "cto", "business", "notes"]:
             keywords = self.settings.agents.get_keywords_for_agent(agent_name)
             matched = [kw for kw in keywords if kw in text_lower]
-            match_score = len(matched) / max(len(keywords), 1)
+            # Each matched keyword contributes significant weight for MVP routing.
+            # Use a simple multiplier and cap at 1.0 so a single strong keyword
+            # can exceed the previous weak fractional score.
+            match_score = min(1.0, len(matched) * 0.35)
             scores[agent_name] = (match_score, matched)
 
         # Sort by score descending

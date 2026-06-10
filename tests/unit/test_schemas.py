@@ -15,6 +15,8 @@ from app.schemas import (
     ToolCall,
     ToolName,
     UserRequest,
+    ApprovalRequest,
+    ToolResult,
 )
 
 
