@@ -2,11 +2,13 @@
 Tests for schemas and data validation.
 """
 
-import pytest
 from uuid import UUID
+
+import pytest
 
 from app.schemas import (
     AgentName,
+    ApprovalRequest,
     ApprovalStatus,
     ConversationContext,
     FinalResponse,
@@ -14,9 +16,8 @@ from app.schemas import (
     OrbState,
     ToolCall,
     ToolName,
-    UserRequest,
-    ApprovalRequest,
     ToolResult,
+    UserRequest,
 )
 
 
