@@ -4,7 +4,7 @@ Orchestrator for JARVIS2026.
 Routes requests to appropriate agents using keyword matching.
 """
 
-from app.events import EventEmitter, EventType
+from app.events import EventEmitter
 from app.schemas import AgentName, RoutingDecision, UserRequest
 from app.settings import get_settings
 
@@ -48,7 +48,7 @@ class Orchestrator:
         matched_keywords: list[str] = []
 
         if sorted_agents and sorted_agents[0][1][0] > 0.3:  # Confidence threshold
-            primary_score, keywords = sorted_agents[0][1]
+            _primary_score, keywords = sorted_agents[0][1]
             matched_keywords = keywords
 
             # Map to enum
@@ -61,7 +61,7 @@ class Orchestrator:
             primary_agent = agent_map.get(sorted_agents[0][0], AgentName.DIRECTOR)
 
             # Add secondary agents if they have decent match
-            for agent_name, (score, kws) in sorted_agents[1:]:
+            for agent_name, (score, _kws) in sorted_agents[1:]:
                 if score > 0.1:
                     secondary_agents.append(agent_map[agent_name])
 

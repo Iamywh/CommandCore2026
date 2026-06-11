@@ -5,10 +5,9 @@ Provides structured routing and validation for all messages.
 """
 
 import asyncio
-from typing import Optional
-from uuid import UUID
+from contextlib import suppress
 
-from app.events import EventType, EventEmitter, get_event_bus
+from app.events import EventEmitter, EventType
 from app.schemas import AgentName, Message
 
 
@@ -22,6 +21,7 @@ class MessageBus:
         self._max_history = 5000
         self._emitter = EventEmitter()
         self._running = False
+        self._routing_task: asyncio.Task | None = None
 
     def register_agent(self, agent_name: AgentName) -> asyncio.Queue:
         """Register an agent to receive messages.
@@ -39,7 +39,7 @@ class MessageBus:
     async def send(
         self,
         message: Message,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> bool:
         """Send a message to the bus.
 
@@ -76,14 +76,14 @@ class MessageBus:
             )
 
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False
 
     async def receive(
         self,
         agent_name: AgentName,
-        timeout: Optional[float] = None,
-    ) -> Optional[Message]:
+        timeout: float | None = None,
+    ) -> Message | None:
         """Receive a message for an agent.
 
         Args:
@@ -115,7 +115,7 @@ class MessageBus:
             )
 
             return message
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
     async def broadcast(self, message: Message) -> None:
@@ -126,10 +126,8 @@ class MessageBus:
         """
         for agent_name, queue in self._agent_queues.items():
             if agent_name != message.sender.value:
-                try:
+                with suppress(asyncio.QueueFull):
                     queue.put_nowait(message)
-                except asyncio.QueueFull:
-                    pass  # Skip if queue is full
 
     async def send_to_agent(
         self,
@@ -158,7 +156,7 @@ class MessageBus:
     async def start(self) -> None:
         """Start the message bus routing loop."""
         self._running = True
-        asyncio.create_task(self._routing_loop())
+        self._routing_task = asyncio.create_task(self._routing_loop())
 
     async def stop(self) -> None:
         """Stop the message bus."""
@@ -181,7 +179,7 @@ class MessageBus:
                     # Broadcast to all agents
                     await self.broadcast(message)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 await self._emitter.bus.emit(
@@ -192,9 +190,9 @@ class MessageBus:
 
     def get_history(
         self,
-        sender: Optional[AgentName] = None,
-        recipient: Optional[AgentName] = None,
-        limit: Optional[int] = None,
+        sender: AgentName | None = None,
+        recipient: AgentName | None = None,
+        limit: int | None = None,
     ) -> list[Message]:
         """Get message history.
 
@@ -233,7 +231,7 @@ class MessageBus:
 
 
 # Global message bus instance
-_message_bus: Optional[MessageBus] = None
+_message_bus: MessageBus | None = None
 
 
 def get_message_bus() -> MessageBus:

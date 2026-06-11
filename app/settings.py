@@ -5,7 +5,6 @@ Uses Pydantic v2 Settings for environment variable loading.
 """
 
 from pathlib import Path
-from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -131,21 +130,21 @@ class AgentSettings(BaseSettings):
     def get_keywords_for_agent(self, agent_name: str) -> set[str]:
         """Get routing keywords for an agent."""
         if agent_name == "dev":
-            return set(k.strip() for k in self.route_dev_keywords.split(","))
+            return {k.strip() for k in self.route_dev_keywords.split(",")}
         elif agent_name == "cto":
-            return set(k.strip() for k in self.route_cto_keywords.split(","))
+            return {k.strip() for k in self.route_cto_keywords.split(",")}
         elif agent_name == "business":
-            return set(k.strip() for k in self.route_business_keywords.split(","))
+            return {k.strip() for k in self.route_business_keywords.split(",")}
         elif agent_name == "notes":
-            return set(k.strip() for k in self.route_notes_keywords.split(","))
+            return {k.strip() for k in self.route_notes_keywords.split(",")}
         return set()
 
 
 class IntegrationSettings(BaseSettings):
     """Optional integration configuration."""
 
-    github_token: Optional[str] = Field(default=None, alias="GITHUB_TOKEN")
-    github_repo: Optional[str] = Field(default=None, alias="GITHUB_REPO")
+    github_token: str | None = Field(default=None, alias="GITHUB_TOKEN")
+    github_repo: str | None = Field(default=None, alias="GITHUB_REPO")
     enable_browser_tools: bool = Field(default=False, alias="ENABLE_BROWSER_TOOLS")
     browser_headless: bool = Field(default=True, alias="BROWSER_HEADLESS")
 
@@ -187,7 +186,7 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-_settings: Optional[Settings] = None
+_settings: Settings | None = None
 
 
 def get_settings() -> Settings:

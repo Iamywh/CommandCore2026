@@ -2,8 +2,9 @@
 Tests for orchestrator routing logic.
 """
 
-import pytest
 import asyncio
+
+import pytest
 
 from app.orchestrator import Orchestrator
 from app.schemas import AgentName, RoutingDecision, UserRequest
@@ -22,7 +23,7 @@ class TestOrchestratorRouting:
         """Test routing a development request."""
         request = UserRequest(text="Can you fix this Python bug?")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent == AgentName.DEV
         assert decision.confidence > 0.3
 
@@ -31,7 +32,7 @@ class TestOrchestratorRouting:
         """Test routing an architecture request."""
         request = UserRequest(text="What's the best architecture for scaling?")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent == AgentName.CTO
         assert "architecture" in [kw.lower() for kw in decision.matched_keywords]
 
@@ -40,7 +41,7 @@ class TestOrchestratorRouting:
         """Test routing a business request."""
         request = UserRequest(text="What should be our priority for next quarter?")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent in [AgentName.BUSINESS, AgentName.DIRECTOR]
 
     @pytest.mark.asyncio
@@ -48,7 +49,7 @@ class TestOrchestratorRouting:
         """Test routing a notes/memory request."""
         request = UserRequest(text="Save this to my journal: today was productive")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent == AgentName.NOTES
         assert "journal" in [kw.lower() for kw in decision.matched_keywords]
 
@@ -57,7 +58,7 @@ class TestOrchestratorRouting:
         """Test routing a generic request goes to director."""
         request = UserRequest(text="Hello, how are you?")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent == AgentName.DIRECTOR
         assert decision.confidence <= 0.3
 
@@ -66,7 +67,7 @@ class TestOrchestratorRouting:
         """Test routing with multiple matching keywords."""
         request = UserRequest(text="Debug and refactor this Python code")
         decision = await orchestrator.route_request(request)
-        
+
         assert decision.primary_agent == AgentName.DEV
         assert len(decision.matched_keywords) >= 2
 
@@ -106,16 +107,16 @@ class TestOrchestratorRouting:
         """Test tool permission checking."""
         # Dev can use shell
         assert orchestrator.can_agent_use_tool(AgentName.DEV, "shell")
-        
+
         # Dev can use git
         assert orchestrator.can_agent_use_tool(AgentName.DEV, "git")
-        
+
         # Dev cannot use approval_request
         assert not orchestrator.can_agent_use_tool(AgentName.DEV, "approval_request")
-        
+
         # Director can use approval_request
         assert orchestrator.can_agent_use_tool(AgentName.DIRECTOR, "approval_request")
-        
+
         # Notes can use memory
         assert orchestrator.can_agent_use_tool(AgentName.NOTES, "memory")
 
@@ -133,7 +134,7 @@ class TestRoutingDecision:
             reasoning="Matched development keywords",
             matched_keywords=["code", "debug"],
         )
-        
+
         assert decision.primary_agent == AgentName.DEV
         assert decision.confidence == 0.85
         assert "code" in decision.matched_keywords
@@ -148,7 +149,7 @@ class TestRoutingDecision:
             confidence=0.7,
             reasoning="Could involve architecture",
         )
-        
+
         assert len(decision.secondary_agents) == 1
         assert AgentName.CTO in decision.secondary_agents
 

@@ -8,10 +8,10 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
-from app.schemas import ConversationContext, ToolResult
+from app.schemas import ConversationContext
 
 
 class SqliteStore:
@@ -186,7 +186,7 @@ class SqliteStore:
 
             conn.commit()
 
-    def get_conversation(self, conversation_id: UUID) -> Optional[dict[str, Any]]:
+    def get_conversation(self, conversation_id: UUID) -> dict[str, Any] | None:
         """Retrieve a conversation by ID."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -269,7 +269,7 @@ class SqliteStore:
     def get_decisions(
         self,
         conversation_id: UUID,
-        decision_type: Optional[str] = None,
+        decision_type: str | None = None,
     ) -> list[dict]:
         """Get decisions for a conversation."""
         with sqlite3.connect(self.db_path) as conn:

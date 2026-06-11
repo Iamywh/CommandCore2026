@@ -6,10 +6,8 @@ Stores summaries and decisions in markdown format for easy reading.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
-from uuid import UUID
 
-from app.schemas import ConversationContext, FinalResponse
+from app.schemas import ConversationContext
 
 
 class JournalStore:
@@ -20,11 +18,11 @@ class JournalStore:
         self.daily_file = daily_file
         self.journal_path.mkdir(parents=True, exist_ok=True)
 
-    def _get_daily_path(self, date: Optional[datetime] = None) -> Path:
+    def _get_daily_path(self, date: datetime | None = None) -> Path:
         """Get path to the daily journal file."""
         if date is None:
             date = datetime.utcnow()
-        
+
         filename = date.strftime("%Y-%m-%d.md")
         return self.journal_path / filename
 
@@ -74,7 +72,7 @@ class JournalStore:
         decision_type: str,
         description: str,
         reasoning: str,
-        date: Optional[datetime] = None,
+        date: datetime | None = None,
     ) -> None:
         """Log a decision to the journal.
 
@@ -98,8 +96,8 @@ class JournalStore:
     def log_error(
         self,
         error_message: str,
-        context: Optional[str] = None,
-        date: Optional[datetime] = None,
+        context: str | None = None,
+        date: datetime | None = None,
     ) -> None:
         """Log an error to the journal.
 
@@ -125,7 +123,7 @@ class JournalStore:
         self,
         summary: str,
         section: str = "Summary",
-        date: Optional[datetime] = None,
+        date: datetime | None = None,
     ) -> None:
         """Log a summary section to the journal.
 
@@ -142,7 +140,7 @@ class JournalStore:
         with open(daily_path, "a", encoding="utf-8") as f:
             f.write(entry)
 
-    def get_daily_journal(self, date: Optional[datetime] = None) -> str:
+    def get_daily_journal(self, date: datetime | None = None) -> str:
         """Get the contents of the daily journal.
 
         Args:

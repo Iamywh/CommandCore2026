@@ -4,18 +4,15 @@ Event system for JARVIS2026.
 Provides a callback-based event bus for system-wide communication.
 """
 
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
 from app.schemas import (
     AgentResponse,
     ApprovalRequest,
-    ApprovalResponse,
-    ConversationContext,
     FinalResponse,
-    Message,
     OrbState,
-    ToolCall,
     ToolResult,
     UserRequest,
 )
@@ -180,7 +177,7 @@ class EventBus:
                         source="event_bus",
                     )
 
-    def get_history(self, event_type: Optional[str] = None) -> list[Event]:
+    def get_history(self, event_type: str | None = None) -> list[Event]:
         """Get event history, optionally filtered by type."""
         if event_type is None:
             return self._event_history.copy()
@@ -192,7 +189,7 @@ class EventBus:
 
 
 # Global event bus instance
-_event_bus: Optional[EventBus] = None
+_event_bus: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:
@@ -206,7 +203,7 @@ def get_event_bus() -> EventBus:
 class EventEmitter:
     """Convenience wrapper for emitting common events."""
 
-    def __init__(self, bus: Optional[EventBus] = None):
+    def __init__(self, bus: EventBus | None = None):
         self.bus = bus or get_event_bus()
 
     async def user_input_received(self, request: UserRequest) -> None:

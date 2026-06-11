@@ -76,14 +76,14 @@ class TestMessage:
             recipient=AgentName.DIRECTOR,
             content="Analysis complete",
         )
-        
+
         response = Message(
             sender=AgentName.DIRECTOR,
             recipient=AgentName.DEV,
             content="Thank you",
             parent_id=parent_msg.id,
         )
-        
+
         assert response.parent_id == parent_msg.id
 
 
@@ -94,7 +94,7 @@ class TestConversationContext:
         """Test creating a conversation context."""
         request = UserRequest(text="What is JARVIS?")
         context = ConversationContext(user_request=request)
-        
+
         assert context.user_request.text == "What is JARVIS?"
         assert len(context.messages) == 0
         assert context.final_response is None
@@ -103,23 +103,23 @@ class TestConversationContext:
         """Test adding messages to conversation."""
         request = UserRequest(text="Test")
         context = ConversationContext(user_request=request)
-        
+
         message = Message(
             sender=AgentName.DIRECTOR,
             content="Processing...",
         )
         context.add_message(message)
-        
+
         assert len(context.messages) == 1
         assert context.messages[0].content == "Processing..."
 
     def test_add_tool_result(self):
         """Test adding tool results to conversation."""
         from datetime import datetime
-        
+
         request = UserRequest(text="Test")
         context = ConversationContext(user_request=request)
-        
+
         tool_call = ToolCall(tool=ToolName.SHELL, parameters={"cmd": "ls"})
         result = ToolResult(
             tool_call_id=tool_call.id,
@@ -128,7 +128,7 @@ class TestConversationContext:
             output="file1\nfile2",
         )
         context.add_tool_result(result)
-        
+
         assert len(context.tool_results) == 1
 
 
@@ -166,12 +166,12 @@ class TestApprovalWorkflow:
     def test_approval_request_creation(self):
         """Test creating an approval request."""
         from app.schemas import ApprovalRequest
-        
+
         tool_call = ToolCall(
             tool=ToolName.SHELL,
             parameters={"cmd": "rm -rf /"},
         )
-        
+
         approval_req = ApprovalRequest(
             tool_call_id=tool_call.id,
             agent=AgentName.DEV,
@@ -179,28 +179,28 @@ class TestApprovalWorkflow:
             risk_level="critical",
             tool_call=tool_call,
         )
-        
+
         assert approval_req.risk_level == "critical"
         assert approval_req.agent == AgentName.DEV
 
     def test_approval_response(self):
         """Test creating an approval response."""
         from app.schemas import ApprovalResponse
-        
+
         approval_req = ApprovalRequest(
             tool_call_id=UUID(int=0),
             agent=AgentName.DEV,
             description="Test",
             tool_call=ToolCall(tool=ToolName.SHELL, parameters={}),
         )
-        
+
         response = ApprovalResponse(
             approval_request_id=approval_req.id,
             approved=False,
             reason="Too risky",
             approved_by="user",
         )
-        
+
         assert response.approved is False
         assert response.reason == "Too risky"
 
@@ -216,7 +216,7 @@ class TestFinalResponse:
             response_text="Code is instructions for computers.",
             agent=AgentName.DIRECTOR,
         )
-        
+
         assert response.response_text == "Code is instructions for computers."
         assert response.agent == AgentName.DIRECTOR
 
@@ -259,7 +259,7 @@ class TestToolResult:
     def test_successful_result(self):
         """Test successful tool result."""
         from app.schemas import ToolResult
-        
+
         result = ToolResult(
             tool_call_id=UUID(int=0),
             tool=ToolName.SHELL,
@@ -267,7 +267,7 @@ class TestToolResult:
             output="Command executed",
             execution_time_ms=100.5,
         )
-        
+
         assert result.success is True
         assert result.output == "Command executed"
         assert result.error is None
@@ -275,7 +275,7 @@ class TestToolResult:
     def test_failed_result(self):
         """Test failed tool result."""
         from app.schemas import ToolResult
-        
+
         result = ToolResult(
             tool_call_id=UUID(int=0),
             tool=ToolName.SHELL,
@@ -284,7 +284,7 @@ class TestToolResult:
             error="Command not found",
             execution_time_ms=50.0,
         )
-        
+
         assert result.success is False
         assert result.error == "Command not found"
 

@@ -4,26 +4,24 @@ Main desktop UI for JARVIS2026 using PySide6.
 Provides an interface with animated orb, transcript, and control buttons.
 """
 
-import asyncio
-from typing import Optional
 
-from PySide6.QtCore import Qt, QTimer, Signal, QThread
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtCore import QTimer, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
     QHBoxLayout,
     QLabel,
+    QMainWindow,
+    QProgressBar,
     QPushButton,
     QTextEdit,
-    QProgressBar,
+    QVBoxLayout,
+    QWidget,
 )
 
-from app.events import EventEmitter, EventType, get_event_bus
+from app.events import EventEmitter, get_event_bus
 from app.orchestrator import Orchestrator
-from app.schemas import OrbState, UserRequest
+from app.schemas import OrbState
 from app.settings import get_settings
 
 
@@ -36,7 +34,7 @@ class OrbWidget(QWidget):
         self.color = QColor(100, 200, 255)  # Default blue
         self.animation_frame = 0
         self.setFixedSize(100, 100)
-        
+
         # Animation timer
         self.animation_timer = QTimer()
         self.animation_timer.timeout.connect(self._update_animation)
@@ -45,7 +43,7 @@ class OrbWidget(QWidget):
     def set_state(self, state: OrbState) -> None:
         """Set the orb state."""
         self.state = state
-        
+
         # Set color based on state
         if state == OrbState.IDLE:
             self.color = QColor(100, 200, 255)  # Blue
@@ -57,7 +55,7 @@ class OrbWidget(QWidget):
             self.color = QColor(0, 200, 100)  # Green
         elif state == OrbState.ERROR:
             self.color = QColor(255, 100, 100)  # Red
-        
+
         self.update()
 
     def _update_animation(self) -> None:
@@ -65,7 +63,7 @@ class OrbWidget(QWidget):
         self.animation_frame = (self.animation_frame + 1) % 60
         self.update()
 
-    def paintEvent(self, event) -> None:
+    def paintEvent(self, _event) -> None:
         """Paint the orb."""
         from PySide6.QtGui import QPainter
 
@@ -120,10 +118,10 @@ class MainWindow(QMainWindow):
         self.settings = get_settings()
         self.orchestrator = Orchestrator()
         self.emitter = EventEmitter()
-        
+
         self.setWindowTitle("JARVIS2026")
         self.setGeometry(100, 100, self.settings.ui.width, self.settings.ui.height)
-        
+
         # Connect signals
         self.state_changed.connect(self._on_state_changed)
         self.transcript_updated.connect(self._on_transcript_updated)
@@ -141,20 +139,20 @@ class MainWindow(QMainWindow):
 
         # Top section: Orb and status
         top_layout = QHBoxLayout()
-        
+
         self.orb = OrbWidget()
         top_layout.addWidget(self.orb)
 
         status_layout = QVBoxLayout()
         status_layout.addStretch()
-        
+
         self.status_label = StatusLabel()
         status_layout.addWidget(self.status_label)
-        
+
         self.progress = QProgressBar()
         self.progress.setVisible(False)
         status_layout.addWidget(self.progress)
-        
+
         status_layout.addStretch()
         top_layout.addLayout(status_layout, 1)
 
@@ -175,7 +173,7 @@ class MainWindow(QMainWindow):
 
         # Bottom section: Controls
         button_layout = QHBoxLayout()
-        
+
         self.push_to_talk_btn = QPushButton("Push to Talk")
         self.push_to_talk_btn.clicked.connect(self._on_push_to_talk)
         self.push_to_talk_btn.setMinimumHeight(40)
@@ -191,8 +189,7 @@ class MainWindow(QMainWindow):
 
     def _setup_event_listeners(self) -> None:
         """Setup event bus listeners."""
-        bus = get_event_bus()
-        
+        get_event_bus()
         # Listen for orb state changes
         async def on_orb_state_changed(event):
             state = OrbState(event.data.get("state"))
@@ -225,7 +222,7 @@ class MainWindow(QMainWindow):
     def _simulate_transcription(self) -> None:
         """Simulate speech-to-text and processing."""
         test_input = "What are the main agents in the system?"
-        
+
         self.transcript.clear()
         self.transcript_updated.emit(f"User: {test_input}")
         self.state_changed.emit(OrbState.THINKING)
@@ -237,17 +234,17 @@ class MainWindow(QMainWindow):
         """Simulate agent response."""
         response = """JARVIS2026 has 5 main agents:
 
-1. **Director** - Routes requests and makes decisions
-2. **Dev** - Handles code analysis and modifications  
-3. **CTO** - Provides technical architecture guidance
-4. **Business** - Assesses business impact and priorities
-5. **Notes** - Manages memory and journaling
+    1. **Director** - Routes requests and makes decisions
+    2. **Dev** - Handles code analysis and modifications
+    3. **CTO** - Provides technical architecture guidance
+    4. **Business** - Assesses business impact and priorities
+    5. **Notes** - Manages memory and journaling
 
-Each agent has specific capabilities and tools."""
+    Each agent has specific capabilities and tools."""
 
         self.response_updated.emit(response)
         self.state_changed.emit(OrbState.SPEAKING)
-        
+
         # Simulate speaking duration
         QTimer.singleShot(3000, self._on_done_speaking)
 
@@ -265,10 +262,10 @@ Each agent has specific capabilities and tools."""
 def main() -> None:
     """Run the JARVIS2026 UI."""
     app = QApplication([])
-    
+
     window = MainWindow()
     window.show()
-    
+
     app.exec()
 
 

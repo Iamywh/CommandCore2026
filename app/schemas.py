@@ -5,14 +5,14 @@ Uses Pydantic v2 for validation and serialization.
 """
 
 from datetime import datetime
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
 
-class AgentName(str, Enum):
+class AgentName(StrEnum):
     """Available agents in the system."""
 
     DIRECTOR = "director"
@@ -22,7 +22,7 @@ class AgentName(str, Enum):
     NOTES = "notes"
 
 
-class OrbState(str, Enum):
+class OrbState(StrEnum):
     """Possible states of the animated orb UI."""
 
     IDLE = "idle"
@@ -32,7 +32,7 @@ class OrbState(str, Enum):
     ERROR = "error"
 
 
-class ToolName(str, Enum):
+class ToolName(StrEnum):
     """Available tools that agents can use."""
 
     SHELL = "shell"
@@ -44,7 +44,7 @@ class ToolName(str, Enum):
     MEMORY = "memory"
 
 
-class ApprovalStatus(str, Enum):
+class ApprovalStatus(StrEnum):
     """Status of a tool execution approval request."""
 
     PENDING = "pending"
@@ -59,10 +59,10 @@ class Message(BaseModel):
     id: UUID = Field(default_factory=uuid4, description="Unique message ID")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     sender: AgentName
-    recipient: Optional[AgentName] = None  # None means broadcast
+    recipient: AgentName | None = None  # None means broadcast
     content: str = Field(description="Message body")
     metadata: dict[str, Any] = Field(default_factory=dict)
-    parent_id: Optional[UUID] = None  # For message threading
+    parent_id: UUID | None = None  # For message threading
 
     class Config:
         use_enum_values = False
@@ -112,7 +112,7 @@ class ToolResult(BaseModel):
     tool: ToolName
     success: bool
     output: Any
-    error: Optional[str] = None
+    error: str | None = None
     execution_time_ms: float = Field(default=0.0)
 
 
@@ -135,8 +135,8 @@ class ApprovalResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     approval_request_id: UUID
     approved: bool
-    reason: Optional[str] = None
-    approved_by: Optional[str] = None
+    reason: str | None = None
+    approved_by: str | None = None
 
 
 class FinalResponse(BaseModel):
@@ -161,7 +161,7 @@ class ConversationContext(BaseModel):
     tool_calls: list[ToolCall] = Field(default_factory=list)
     tool_results: list[ToolResult] = Field(default_factory=list)
     approval_requests: list[ApprovalRequest] = Field(default_factory=list)
-    final_response: Optional[FinalResponse] = None
+    final_response: FinalResponse | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
