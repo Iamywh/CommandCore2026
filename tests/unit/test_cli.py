@@ -1,14 +1,19 @@
+from datetime import datetime
 from pathlib import Path
 
 from app.main import (
+    CLEAR_COMMAND,
     EXIT_KEYWORDS,
     HELP_COMMAND,
+    HISTORY_COMMAND,
     JOURNAL_COMMAND,
     STATS_COMMAND,
+    _clear_screen,
     _log_routing_decision,
     _print_banner,
     _print_decision,
     _print_help,
+    _print_journal_history,
     _print_journal_stats,
     _print_today_journal,
 )
@@ -54,6 +59,18 @@ def test_help_command_constant() -> None:
     assert HELP_COMMAND == "/help"
 
 
+def test_stats_command_constant() -> None:
+    assert STATS_COMMAND == "/stats"
+
+
+def test_history_command_constant() -> None:
+    assert HISTORY_COMMAND == "/history"
+
+
+def test_clear_command_constant() -> None:
+    assert CLEAR_COMMAND == "/clear"
+
+
 def test_print_help(capsys) -> None:
     _print_help()
 
@@ -62,13 +79,11 @@ def test_print_help(capsys) -> None:
     assert "/help     Show available commands.\n" in captured.out
     assert "/journal  Show today's journal.\n" in captured.out
     assert "/stats    Show journal statistics.\n" in captured.out
+    assert "/history  Show available journal files.\n" in captured.out
+    assert "/clear    Clear the CLI screen.\n" in captured.out
     assert "exit      Quit the CLI.\n" in captured.out
     assert "quit      Quit the CLI.\n" in captured.out
     assert "q         Quit the CLI.\n" in captured.out
-
-
-def test_stats_command_constant() -> None:
-    assert STATS_COMMAND == "/stats"
 
 
 def test_print_journal_stats_no_entries(capsys, tmp_path: Path) -> None:
@@ -104,6 +119,44 @@ def test_print_journal_stats_with_content(capsys, tmp_path: Path) -> None:
     assert "Newest journal: " in captured.out
     assert "Oldest journal: " in captured.out
     assert "---------------------\n" in captured.out
+
+
+def test_print_journal_history_no_entries(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+
+    _print_journal_history(journal_store)
+
+    captured = capsys.readouterr()
+    assert captured.out == "No journal history found.\n"
+
+
+def test_print_journal_history_with_entries(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+    journal_store.log_summary(
+        summary="First entry.",
+        section="Summary",
+        date=datetime(2026, 6, 10, 10, 0, 0),
+    )
+    journal_store.log_summary(
+        summary="Second entry.",
+        section="Summary",
+        date=datetime(2026, 6, 11, 10, 0, 0),
+    )
+
+    _print_journal_history(journal_store)
+
+    captured = capsys.readouterr()
+    assert "--- Journal History ---\n" in captured.out
+    assert "- 2026-06-11.md\n" in captured.out
+    assert "- 2026-06-10.md\n" in captured.out
+    assert "-----------------------\n" in captured.out
+
+
+def test_clear_screen_prints_escape_sequence(capsys) -> None:
+    _clear_screen()
+
+    captured = capsys.readouterr()
+    assert captured.out == "\033c"
 
 
 def test_print_today_journal_no_entries(capsys, tmp_path: Path) -> None:

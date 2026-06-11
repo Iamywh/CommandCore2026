@@ -21,6 +21,8 @@ EXIT_KEYWORDS: set[str] = {"exit", "quit", "q"}
 JOURNAL_COMMAND = "/journal"
 HELP_COMMAND = "/help"
 STATS_COMMAND = "/stats"
+HISTORY_COMMAND = "/history"
+CLEAR_COMMAND = "/clear"
 
 
 def _print_banner() -> None:
@@ -54,6 +56,8 @@ def _print_help() -> None:
     print("/help     Show available commands.")
     print("/journal  Show today's journal.")
     print("/stats    Show journal statistics.")
+    print("/history  Show available journal files.")
+    print("/clear    Clear the CLI screen.")
     print("exit      Quit the CLI.")
     print("quit      Quit the CLI.")
     print("q         Quit the CLI.")
@@ -81,6 +85,22 @@ def _print_today_journal(journal_store: JournalStore) -> None:
     print("-----------------------")
 
 
+def _print_journal_history(journal_store: JournalStore) -> None:
+    journals = journal_store.list_journals()
+    if not journals:
+        print("No journal history found.")
+        return
+
+    print("--- Journal History ---")
+    for journal in journals:
+        print(f"- {journal.name}")
+    print("-----------------------")
+
+
+def _clear_screen() -> None:
+    print("\033c", end="")
+
+
 def _process_cli_command(text: str, journal_store: JournalStore) -> bool:
     normalized = text.lower()
     if normalized == JOURNAL_COMMAND:
@@ -91,6 +111,12 @@ def _process_cli_command(text: str, journal_store: JournalStore) -> bool:
         return True
     if normalized == STATS_COMMAND:
         _print_journal_stats(journal_store)
+        return True
+    if normalized == HISTORY_COMMAND:
+        _print_journal_history(journal_store)
+        return True
+    if normalized == CLEAR_COMMAND:
+        _clear_screen()
         return True
     return False
 
