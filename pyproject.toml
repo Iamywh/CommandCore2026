@@ -141,7 +141,6 @@ select = [
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
-    "W503",   # line break before binary operator
     "B008",   # do not perform function calls in argument defaults
 ]
 
