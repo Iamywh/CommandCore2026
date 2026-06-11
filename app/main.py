@@ -18,6 +18,7 @@ from app.settings import get_settings
 from memory.journal_store import JournalStore
 
 EXIT_KEYWORDS: set[str] = {"exit", "quit", "q"}
+JOURNAL_COMMAND = "/journal"
 
 
 def _print_banner() -> None:
@@ -46,6 +47,17 @@ def _log_routing_decision(journal_store: JournalStore, decision) -> None:
         print(f"Warning: failed to write journal entry: {exc}")
 
 
+def _print_today_journal(journal_store: JournalStore) -> None:
+    content = journal_store.get_daily_journal()
+    if not content:
+        print("No journal entries found for today.")
+        return
+
+    print("--- Today's Journal ---")
+    print(content.rstrip())
+    print("-----------------------")
+
+
 async def run_cli() -> None:
     orchestrator = Orchestrator()
     settings = get_settings()
@@ -71,6 +83,10 @@ async def run_cli() -> None:
         if text.lower() in EXIT_KEYWORDS:
             print("Goodbye.")
             return
+
+        if text.lower() == JOURNAL_COMMAND:
+            _print_today_journal(journal_store)
+            continue
 
         # Build request and route it
         try:

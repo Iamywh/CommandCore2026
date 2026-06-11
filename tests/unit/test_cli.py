@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from app.main import EXIT_KEYWORDS, _log_routing_decision, _print_banner, _print_decision
+from app.main import (
+    EXIT_KEYWORDS,
+    JOURNAL_COMMAND,
+    _log_routing_decision,
+    _print_banner,
+    _print_decision,
+    _print_today_journal,
+)
 from app.schemas import AgentName, RoutingDecision
 from memory.journal_store import JournalStore
 
@@ -33,6 +40,35 @@ def test_print_decision(capsys) -> None:
     assert "Confidence: 0.85\n" in captured.out
     assert "Matched keywords: test, debug\n" in captured.out
     assert "Reasoning: Test routing decision\n" in captured.out
+
+
+def test_journal_command_constant() -> None:
+    assert JOURNAL_COMMAND == "/journal"
+
+
+def test_print_today_journal_no_entries(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+
+    _print_today_journal(journal_store)
+
+    captured = capsys.readouterr()
+    assert captured.out == "No journal entries found for today.\n"
+
+
+def test_print_today_journal_with_content(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+    journal_store.log_summary(
+        summary="Today we made progress.",
+        section="Summary",
+        date=None,
+    )
+
+    _print_today_journal(journal_store)
+
+    captured = capsys.readouterr()
+    assert "--- Today's Journal ---\n" in captured.out
+    assert "Today we made progress." in captured.out
+    assert "-----------------------\n" in captured.out
 
 
 def test_log_routing_decision_writes_expected_entry(tmp_path: Path) -> None:
