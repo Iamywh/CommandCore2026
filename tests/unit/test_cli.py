@@ -2,10 +2,12 @@ from pathlib import Path
 
 from app.main import (
     EXIT_KEYWORDS,
+    HELP_COMMAND,
     JOURNAL_COMMAND,
     _log_routing_decision,
     _print_banner,
     _print_decision,
+    _print_help,
     _print_today_journal,
 )
 from app.schemas import AgentName, RoutingDecision
@@ -44,6 +46,22 @@ def test_print_decision(capsys) -> None:
 
 def test_journal_command_constant() -> None:
     assert JOURNAL_COMMAND == "/journal"
+
+
+def test_help_command_constant() -> None:
+    assert HELP_COMMAND == "/help"
+
+
+def test_print_help(capsys) -> None:
+    _print_help()
+
+    captured = capsys.readouterr()
+    assert "JARVIS2026 Commands\n" in captured.out
+    assert "/help     Show available commands.\n" in captured.out
+    assert "/journal  Show today's journal.\n" in captured.out
+    assert "exit      Quit the CLI.\n" in captured.out
+    assert "quit      Quit the CLI.\n" in captured.out
+    assert "q         Quit the CLI.\n" in captured.out
 
 
 def test_print_today_journal_no_entries(capsys, tmp_path: Path) -> None:

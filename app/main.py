@@ -19,6 +19,7 @@ from memory.journal_store import JournalStore
 
 EXIT_KEYWORDS: set[str] = {"exit", "quit", "q"}
 JOURNAL_COMMAND = "/journal"
+HELP_COMMAND = "/help"
 
 
 def _print_banner() -> None:
@@ -47,6 +48,15 @@ def _log_routing_decision(journal_store: JournalStore, decision) -> None:
         print(f"Warning: failed to write journal entry: {exc}")
 
 
+def _print_help() -> None:
+    print("JARVIS2026 Commands")
+    print("/help     Show available commands.")
+    print("/journal  Show today's journal.")
+    print("exit      Quit the CLI.")
+    print("quit      Quit the CLI.")
+    print("q         Quit the CLI.")
+
+
 def _print_today_journal(journal_store: JournalStore) -> None:
     content = journal_store.get_daily_journal()
     if not content:
@@ -56,6 +66,17 @@ def _print_today_journal(journal_store: JournalStore) -> None:
     print("--- Today's Journal ---")
     print(content.rstrip())
     print("-----------------------")
+
+
+def _process_cli_command(text: str, journal_store: JournalStore) -> bool:
+    normalized = text.lower()
+    if normalized == JOURNAL_COMMAND:
+        _print_today_journal(journal_store)
+        return True
+    if normalized == HELP_COMMAND:
+        _print_help()
+        return True
+    return False
 
 
 async def run_cli() -> None:
@@ -84,8 +105,7 @@ async def run_cli() -> None:
             print("Goodbye.")
             return
 
-        if text.lower() == JOURNAL_COMMAND:
-            _print_today_journal(journal_store)
+        if _process_cli_command(text, journal_store):
             continue
 
         # Build request and route it
