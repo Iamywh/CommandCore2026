@@ -20,6 +20,7 @@ from memory.journal_store import JournalStore
 EXIT_KEYWORDS: set[str] = {"exit", "quit", "q"}
 JOURNAL_COMMAND = "/journal"
 HELP_COMMAND = "/help"
+STATS_COMMAND = "/stats"
 
 
 def _print_banner() -> None:
@@ -52,9 +53,21 @@ def _print_help() -> None:
     print("JARVIS2026 Commands")
     print("/help     Show available commands.")
     print("/journal  Show today's journal.")
+    print("/stats    Show journal statistics.")
     print("exit      Quit the CLI.")
     print("quit      Quit the CLI.")
     print("q         Quit the CLI.")
+
+
+def _print_journal_stats(journal_store: JournalStore) -> None:
+    stats = journal_store.get_stats()
+    print("--- Journal Stats ---")
+    print(f"Total journals: {stats['total_journals']}")
+    print(f"Total entries: {stats['total_entries']}")
+    print(f"Total size bytes: {stats['total_size_bytes']}")
+    print(f"Newest journal: {stats['newest_journal']}")
+    print(f"Oldest journal: {stats['oldest_journal']}")
+    print("---------------------")
 
 
 def _print_today_journal(journal_store: JournalStore) -> None:
@@ -75,6 +88,9 @@ def _process_cli_command(text: str, journal_store: JournalStore) -> bool:
         return True
     if normalized == HELP_COMMAND:
         _print_help()
+        return True
+    if normalized == STATS_COMMAND:
+        _print_journal_stats(journal_store)
         return True
     return False
 

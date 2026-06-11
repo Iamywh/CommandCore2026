@@ -4,10 +4,12 @@ from app.main import (
     EXIT_KEYWORDS,
     HELP_COMMAND,
     JOURNAL_COMMAND,
+    STATS_COMMAND,
     _log_routing_decision,
     _print_banner,
     _print_decision,
     _print_help,
+    _print_journal_stats,
     _print_today_journal,
 )
 from app.schemas import AgentName, RoutingDecision
@@ -59,9 +61,49 @@ def test_print_help(capsys) -> None:
     assert "JARVIS2026 Commands\n" in captured.out
     assert "/help     Show available commands.\n" in captured.out
     assert "/journal  Show today's journal.\n" in captured.out
+    assert "/stats    Show journal statistics.\n" in captured.out
     assert "exit      Quit the CLI.\n" in captured.out
     assert "quit      Quit the CLI.\n" in captured.out
     assert "q         Quit the CLI.\n" in captured.out
+
+
+def test_stats_command_constant() -> None:
+    assert STATS_COMMAND == "/stats"
+
+
+def test_print_journal_stats_no_entries(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+
+    _print_journal_stats(journal_store)
+
+    captured = capsys.readouterr()
+    assert "--- Journal Stats ---\n" in captured.out
+    assert "Total journals: 0\n" in captured.out
+    assert "Total entries: 0\n" in captured.out
+    assert "Total size bytes: 0\n" in captured.out
+    assert "Newest journal: None\n" in captured.out
+    assert "Oldest journal: None\n" in captured.out
+    assert "---------------------\n" in captured.out
+
+
+def test_print_journal_stats_with_content(capsys, tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+    journal_store.log_summary(
+        summary="Journal stats test.",
+        section="Summary",
+        date=None,
+    )
+
+    _print_journal_stats(journal_store)
+
+    captured = capsys.readouterr()
+    assert "--- Journal Stats ---\n" in captured.out
+    assert "Total journals: 1\n" in captured.out
+    assert "Total entries: 1\n" in captured.out
+    assert "Total size bytes: " in captured.out
+    assert "Newest journal: " in captured.out
+    assert "Oldest journal: " in captured.out
+    assert "---------------------\n" in captured.out
 
 
 def test_print_today_journal_no_entries(capsys, tmp_path: Path) -> None:
