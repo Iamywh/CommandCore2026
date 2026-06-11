@@ -7,7 +7,7 @@ Uses Pydantic v2 Settings for environment variable loading.
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class OllamaSettings(BaseSettings):
@@ -174,11 +174,12 @@ class Settings(BaseSettings):
     integrations: IntegrationSettings = Field(default_factory=IntegrationSettings)
     debug: DebugSettings = Field(default_factory=DebugSettings)
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
     def initialize(self) -> None:
         """Initialize settings (create directories, etc)."""

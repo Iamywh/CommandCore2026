@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class AgentName(StrEnum):
@@ -64,8 +64,7 @@ class Message(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     parent_id: UUID | None = None  # For message threading
 
-    class Config:
-        use_enum_values = False
+    model_config = ConfigDict(use_enum_values=False)
 
 
 class UserRequest(BaseModel):
