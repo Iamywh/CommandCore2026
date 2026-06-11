@@ -38,7 +38,6 @@ async def run_cli() -> None:
 
     _print_banner()
 
-    # Use built-in input loop; input_fn is unused but present for easier testing extension
     while True:
         try:
             user_input = input("> ")
