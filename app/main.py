@@ -14,6 +14,8 @@ import asyncio
 
 from app.orchestrator import Orchestrator
 from app.schemas import UserRequest
+from app.settings import get_settings
+from memory.journal_store import JournalStore
 
 EXIT_KEYWORDS: set[str] = {"exit", "quit", "q"}
 
@@ -33,8 +35,22 @@ def _print_decision(decision) -> None:
     print("----------------------")
 
 
+def _log_routing_decision(journal_store: JournalStore, decision) -> None:
+    try:
+        journal_store.log_decision(
+            decision_type="routing",
+            description=f"Routed request to {decision.primary_agent.value}",
+            reasoning=decision.reasoning,
+        )
+    except Exception as exc:
+        print(f"Warning: failed to write journal entry: {exc}")
+
+
 async def run_cli() -> None:
     orchestrator = Orchestrator()
+    settings = get_settings()
+    settings.initialize()
+    journal_store = JournalStore(settings.paths.journal_path, settings.paths.journal_file)
 
     _print_banner()
 
@@ -73,6 +89,7 @@ async def run_cli() -> None:
             continue
 
         _print_decision(decision)
+        _log_routing_decision(journal_store, decision)
 
 
 def main() -> int:

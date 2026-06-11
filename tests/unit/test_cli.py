@@ -1,5 +1,8 @@
-from app.main import EXIT_KEYWORDS, _print_banner, _print_decision
+from pathlib import Path
+
+from app.main import EXIT_KEYWORDS, _log_routing_decision, _print_banner, _print_decision
 from app.schemas import AgentName, RoutingDecision
+from memory.journal_store import JournalStore
 
 
 def test_exit_keywords_contains_expected_values() -> None:
@@ -30,3 +33,44 @@ def test_print_decision(capsys) -> None:
     assert "Confidence: 0.85\n" in captured.out
     assert "Matched keywords: test, debug\n" in captured.out
     assert "Reasoning: Test routing decision\n" in captured.out
+
+
+def test_log_routing_decision_writes_expected_entry(tmp_path: Path) -> None:
+    journal_store = JournalStore(tmp_path)
+    decision = RoutingDecision(
+        request_id="00000000-0000-0000-0000-000000000000",
+        primary_agent=AgentName.DEV,
+        secondary_agents=[],
+        confidence=0.85,
+        reasoning="Test routing decision",
+        matched_keywords=["test", "debug"],
+    )
+
+    _log_routing_decision(journal_store, decision)
+
+    journals = journal_store.list_journals()
+    assert len(journals) == 1
+
+    content = journal_store.get_daily_journal()
+    assert "**Decision:** Routed request to dev" in content
+    assert "**Reasoning:** Test routing decision" in content
+
+
+def test_log_routing_decision_failure_prints_warning(capsys) -> None:
+    class BrokenStore:
+        def log_decision(self, *_, **__):
+            raise RuntimeError("disk full")
+
+    decision = RoutingDecision(
+        request_id="00000000-0000-0000-0000-000000000000",
+        primary_agent=AgentName.DEV,
+        secondary_agents=[],
+        confidence=0.85,
+        reasoning="Test routing decision",
+        matched_keywords=["test", "debug"],
+    )
+
+    _log_routing_decision(BrokenStore(), decision)
+
+    captured = capsys.readouterr()
+    assert "Warning: failed to write journal entry: disk full" in captured.out
